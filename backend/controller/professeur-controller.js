@@ -54,9 +54,17 @@ exports.addProfesseur = catchAsync(async (req, res, next) => {
   const data = req.body;
   let professeur = new Professeur({
     user: req.body.user,
+    nom: req.body.nom,
+    // prenom: req.body.prenom,
+    mobile: req.body.mobile,
+    email: req.body.email,
+    password: req.body.password,
     matieres: req.body.matieres,
     banque: req.body.banque,
     accountNumero: req.body.accountNumero,
+
+     
+    
   });
   professeur = await professeur.save();
   res.status(200).json({

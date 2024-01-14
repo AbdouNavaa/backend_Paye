@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 const Matiere = require("../models/matiere");
 const User = require("../auth/models/user");
+const crypto = require("crypto");
+// const { default: mongoose } = require("mongoose");
+const validator = require("validator");
+const bcrypt = require("bcryptjs");
+// const AppError = require("../../utils/appError");
 const professeurSchema = mongoose.Schema(
   {
     matieres: [
@@ -32,6 +37,35 @@ const professeurSchema = mongoose.Schema(
       ref: "User",
       unique: true,
       required: [true, "Utilisateur ID est requis !"],
+    },
+
+    nom: {
+      type: String,
+      required: [true, "Le nom est requis !"],
+    },
+    // prenom: {
+      // type: String,
+      // required: [true, "Le prenom est requis !"],
+    // },
+  
+    mobile: {
+      type: Number,
+      required: [true, "Le numéro de téléphone est reauis !"],
+      unique: true,
+    },
+    email: {
+      type: String,
+      required: [true, "E-mail est requis !"],
+      unique: true,
+      lowercase: true,
+      // validate: [validator.isEmail, "Veuillez fournir un e-mail valide"],
+    },
+   
+    password: {
+      type: String,
+      required: [true, "Veuillez fournir un mot de passe !"],
+      nimlength: 8,
+      select: false,
     },
   },
   {
@@ -102,7 +136,7 @@ professeurSchema.methods.getInfo_Nbh_TH_Nbc_Somme = async function (
           isPaid: "pas encore",
         }
       : { professeur: this._id, isSigned: "oui", isPaid: "pas encore" };
-  const prof_cours = await Cours.find(query);
+  const prof_cours = await Cours.find(query).sort({ date: 1 });
   let nbh = 0;
   let th = 0;
   let nbc = 0;

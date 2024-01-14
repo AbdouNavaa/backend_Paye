@@ -32,12 +32,12 @@ exports.getPaiements = catchAsync(async (req, res, next) => {
       status: elem.status,
       confirmation: elem.confirmation,
       professeur: prof_info[0],
-      nomComplet: prof_info[2] +' ' +prof_info[1],
+      nomComplet: prof_info[1] + " " + prof_info[2],
       email: prof_info[3],
       mobile: prof_info[4],
       banque: prof_info[5],
       accountNumero: prof_info[6],
-    };//abdou
+    };
     paiements.push(data);
   }
   res.status(200).json({
@@ -132,10 +132,10 @@ exports.deletePaiement = catchAsync(async (req, res, next) => {
   let up_cours = await Cours.updateMany(filter, {
     $set: { isPaid: "pas encore" },
   });
-  const deleted_paiement = await Paiement.findByIdAndDelete(id);//abdou
+  const deleted_paiement = await Paiement.findOneAndDelete({ _id: id });
   res.status(200).json({
     status: "success",
-    message: deleted_paiement.status,
+    message: `Le paiement est suprimé avec succéss`,
     paiement,
   });
 });
@@ -148,6 +148,53 @@ exports.getPaiementById = catchAsync(async (req, res, next) => {
   }
   res.status(200).json({
     status: "success",
+    paiement,
+  });
+});
+// 6) get professeur paiements
+exports.getPaiementsByProfesseurId = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
+  const professeur = await Professeur.findById(id);
+  if (!professeur) {
+    return next(new AppError("Aucun object trouvé avec cet ID !", 404));
+  }
+  let query =
+    req.body.notification !== undefined
+      ? { professeur: id, confirmation: "vide" }
+      : { professeur: id, confirmation: "accepté" };
+  const paiements = await Paiement.find(query);
+  res.status(200).json({
+    status: "success",
+    paiements,
+  });
+});
+
+// 6) comfirmation par professeur dun paiement
+exports.Validation = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
+  let paiement = await Paiement.findById(id);
+  if (!paiement) {
+    return next(new AppError("Aucun object trouvé avec cet ID !", 404));
+  }
+  let auery =
+    req.body.refuse !== undefined
+      ? { confirmation: "refusé" }
+      : {
+          confirmation: "accepté",
+          status: "validé",
+        };
+  let message =
+    req.body.refuse !== undefined
+      ? "Le paiement est refusé avec succés ."
+      : "Le paiement est validé avec succés .";
+  paiement = await Paiement.findByIdAndUpdate(id, auery, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).json({
+    status: "succès",
+    message: message,
     paiement,
   });
 });
